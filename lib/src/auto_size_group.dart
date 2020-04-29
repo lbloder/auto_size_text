@@ -3,8 +3,12 @@ part of auto_size_text;
 /// Controller to synchronize the fontSize of multiple AutoSizeTexts.
 class AutoSizeGroup {
   final _listeners = <_AutoSizeTextState, double>{};
+  final bool keepSmallestSize;
   var _widgetsNotified = false;
   double _fontSize = double.infinity;
+  double _minFontSize = double.infinity;
+
+  AutoSizeGroup({this.keepSmallestSize = false});
 
   _register(_AutoSizeTextState text) {
     _listeners[text] = double.infinity;
@@ -25,9 +29,17 @@ class AutoSizeGroup {
       _listeners[text] = maxFontSize;
     }
 
+    if(_fontSize < _minFontSize) {
+      _minFontSize = _fontSize;
+    }
+
+    if (keepSmallestSize) {
+      _fontSize = _minFontSize;
+    }
+
     if (oldFontSize != _fontSize) {
       _widgetsNotified = false;
-      scheduleMicrotask(_notifyListeners);
+      Timer.run(_notifyListeners);
     }
   }
 
